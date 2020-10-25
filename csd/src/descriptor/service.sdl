@@ -21,11 +21,11 @@
   "serviceDependencies": [
     {
       "name": "HDFS",
-      "required": "true"
+      "required": "false"
     },
     {
       "name": "YARN",
-      "required": "true"
+      "required": "false"
     }
   ],
   "hdfsDirs": [
@@ -287,14 +287,6 @@
                 "value": "druid/coordinator"
               },
               {
-                "key": "druid.request.logging.feed",
-                "value": "druid_requests"
-              },
-              {
-                "key": "druid.request.logging.type",
-                "value": "emitter"
-              },
-              {
                 "key": "druid.monitoring.emissionPeriod",
                 "value": "PT1m"
               }
@@ -420,14 +412,6 @@
                 "value": "druid/coordinator"
               },
               {
-                "key": "druid.request.logging.feed",
-                "value": "druid_requests"
-              },
-              {
-                "key": "druid.request.logging.type",
-                "value": "emitter"
-              },
-              {
                 "key": "druid.monitoring.emissionPeriod",
                 "value": "PT1m"
               }
@@ -547,14 +531,6 @@
               {
                 "key": "druid.selectors.coordinator.serviceName",
                 "value": "druid/coordinator"
-              },
-              {
-                "key": "druid.request.logging.feed",
-                "value": "druid_requests"
-              },
-              {
-                "key": "druid.request.logging.type",
-                "value": "emitter"
               },
               {
                 "key": "druid.monitoring.emissionPeriod",
@@ -745,14 +721,6 @@
                 "value": "druid/coordinator"
               },
               {
-                "key": "druid.request.logging.feed",
-                "value": "druid_requests"
-              },
-              {
-                "key": "druid.request.logging.type",
-                "value": "emitter"
-              },
-              {
                 "key": "druid.monitoring.emissionPeriod",
                 "value": "PT1m"
               }
@@ -872,14 +840,6 @@
                 "value": "druid/coordinator"
               },
               {
-                "key": "druid.request.logging.feed",
-                "value": "druid_requests"
-              },
-              {
-                "key": "druid.request.logging.type",
-                "value": "emitter"
-              },
-              {
                 "key": "druid.monitoring.emissionPeriod",
                 "value": "PT1m"
               }
@@ -935,6 +895,131 @@
               {
                 "key": "druid.segmentCache.locations",
                 "value": "[{\"path\":\"${druid_persistent_dir}/segment-cache\",\"maxSize\":300000000000}]"
+              }
+            ],
+            "configFormat": "properties"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DRUID_ROUTER",
+      "label": "Druid Router",
+      "pluralLabel": "Druid Router",
+      "jvmBased": true,
+      "startRunner": {
+        "program": "scripts/control.sh",
+        "args": [
+          "router",
+          "start"
+        ],
+        "environmentVariables": {
+          "ROUTER_HEAP_SIZE": "${router_max_heap_size}"
+        }
+      },
+      "externalLink": {
+        "name": "router_console",
+        "label": "Router Console",
+        "url": "http://${host}:${router_port}"
+      },
+      "topology": {
+        "minInstances": 1
+      },
+      "logging": {
+        "dir": "/var/log/druid",
+        "filename": "druid-router-${host}.log",
+        "configName": "log.dir",
+        "modifiable": true,
+        "loggingType": "log4j"
+      },
+      "parameters": [
+        {
+          "name": "router_port",
+          "label": "Router Port",
+          "description": "The port of the router",
+          "configName": "druid.port",
+          "required": "true",
+          "type": "port",
+          "default": 18888
+        },
+        {
+          "name": "router_max_heap_size",
+          "label": "Java Heap Size of router",
+          "description": "Maximum size for the Java process heap memory. Passed to Java -Xmx. Measured in megabytes.",
+          "type": "memory",
+          "default": 1024,
+          "min": 1024,
+          "softMin": 2048,
+          "softMax": 16384,
+          "unit": "megabytes",
+          "scaleFactor": 1.3
+        }
+      ],
+      "configWriter": {
+        "generators": [
+          {
+            "filename": "conf/_common/common.runtime.properties",
+            "includedParams": [
+              "druid_extensions_loadList",
+              "druid_metadata_storage_type",
+              "druid_metadata_storage_connector_connectURI",
+              "druid_metadata_storage_connector_user",
+              "druid_metadata_storage_connector_password",
+              "druid_indexer_logs_type",
+              "druid_indexer_logs_directory",
+              "druid_startup_logging_logProperties",
+              "druid_storage_dir",
+              "druid_storage_type",
+              "druid_zk_paths_base",
+              "druid_zk_service_host",
+              "druid_javascript_enabled",
+              "druid_sql_enable"
+            ],
+            "additionalConfigs": [
+              {
+                "key": "druid.extensions.directory",
+                "value": "{{DRUID_HOME}}/extensions"
+              },
+              {
+                "key": "druid.extensions.hadoopDependenciesDir",
+                "value": "{{DRUID_HOME}}/hadoop-dependencies"
+              },
+              {
+                "key": "druid.selectors.indexing.serviceName",
+                "value": "druid/overlord"
+              },
+              {
+                "key": "druid.selectors.coordinator.serviceName",
+                "value": "druid/coordinator"
+              },
+              {
+                "key": "druid.monitoring.emissionPeriod",
+                "value": "PT1m"
+              }
+            ],
+            "configFormat": "properties"
+          },
+          {
+            "filename": "conf/router/runtime.properties",
+            "includedParams": [
+              "router_port"
+            ],
+            "additionalConfigs": [
+              {
+                "key": "druid.service",
+                "value": "druid/router"
+              },
+              {
+                "key": "druid.server.http.numThreads",
+                "value": 40
+              },
+              {
+                "key": "druid.processing.buffer.sizeBytes",
+                "value": 536870912
+              },
+              {
+                "key": "druid.processing.numThreads",
+                "value": 2
               }
             ],
             "configFormat": "properties"

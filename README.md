@@ -1,5 +1,3 @@
-Notice:  this repo is no longer maintained.  My employer moved away from both CDH and Druid.
-
 # Druid for Cloudera CDH
 
 - Create CDH parcels from Druid distribution.

@@ -89,19 +89,22 @@ COMMON_JAVA_OPTS="-server -Djava.net.preferIPv4Stack=true -Duser.timezone=UTC -D
 # Configure JAVA options for each type
 case ${NODE_TYPE} in
     (overlord)
-        DRUID_JAVA_OPTS="-Xmx${OVERLORD_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
+        DRUID_JAVA_OPTS="-Xmx${OVERLORD_HEAP_SIZE}M $DRUID_JAVA_OPTS"
         ;;
     (coordinator)
-        DRUID_JAVA_OPTS="-Xmx${COORDINATOR_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
+        DRUID_JAVA_OPTS="-Xmx${COORDINATOR_HEAP_SIZE}M $DRUID_JAVA_OPTS"
         ;;
     (middleManager)
-        DRUID_JAVA_OPTS="-Xmx${MIDDLE_MANAGER_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
+        DRUID_JAVA_OPTS="-Xmx${MIDDLE_MANAGER_HEAP_SIZE}M $DRUID_JAVA_OPTS"
         ;;
     (historical)
-        DRUID_JAVA_OPTS="-Xmx${HISTORICAL_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
+        DRUID_JAVA_OPTS="-Xmx${HISTORICAL_HEAP_SIZE}M $DRUID_JAVA_OPTS"
         ;;
     (broker)
-        DRUID_JAVA_OPTS="-Xmx${BROKER_HEAP_SIZE}M -XX:MaxDirectMemorySize=4096m"
+        DRUID_JAVA_OPTS="-Xmx${BROKER_HEAP_SIZE}M $DRUID_JAVA_OPTS"
+        ;;
+    (router)
+        DRUID_JAVA_OPTS="-Xmx${ROUTER_HEAP_SIZE}M $DRUID_JAVA_OPTS"
         ;;
     (*)
         ;;
@@ -111,8 +114,8 @@ DRUID_JAVA_OPTS="$DRUID_JAVA_OPTS $CSD_JAVA_OPTS $COMMON_JAVA_OPTS"
 
 case ${CMD} in
     (start)
-        echo $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* io.druid.cli.Main server $NODE_TYPE
-        exec $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* io.druid.cli.Main server $NODE_TYPE
+        echo $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* org.apache.druid.cli.Main server $NODE_TYPE
+        exec $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* org.apache.druid.cli.Main server $NODE_TYPE
         ;;
     (*)
         echo "Unknown command ${CMD}"

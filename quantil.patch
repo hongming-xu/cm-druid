@@ -1,0 +1,350 @@
+diff --git a/config.mk b/config.mk
+index 4ed1e9a..c3d07a6 100644
+--- a/config.mk
++++ b/config.mk
+@@ -1,23 +1,26 @@
+-PARCEL_VERSION=0.0.3
++PARCEL_VERSION=0.0.4
+ DIST_DIR=dist
+-CDH_VERSION=5.8.0
+-DRUID_VERSION=0.10.0
++CDH_VERSION=5.15.1
++DRUID_VERSION=0.21.0
+ 
+ TRANQUILITY_VERSION=0.8.2
+ 
+ MYSQL_EXT_VERSION=0.10.0
+ 
+-DRUID_TAR=druid-${DRUID_VERSION}-bin.tar.gz
++DRUID_TAR=apache-druid-${DRUID_VERSION}-bin.tar.gz
+ TRANQUILITY_TAR=tranquility-distribution-${TRANQUILITY_VERSION}.tgz
+ MYSQL_EXT_TAR=mysql-metadata-storage-${MYSQL_EXT_VERSION}.tar.gz
+ 
+-DRUID_URL=http://static.druid.io/artifacts/releases/${DRUID_TAR}
++# http://mirrors.tuna.tsinghua.edu.cn/apache/incubator/druid/0.13.0-incubating/apache-druid-0.13.0-incubating-bin.tar.gz
++
++# DRUID_URL=http://static.druid.io/artifacts/releases/${DRUID_TAR}
++DRUID_URL=https://downloads.apache.org/druid/${DRUID_VERSION}/${DRUID_TAR}
+ TRANQUILITY_URL=http://static.druid.io/tranquility/releases/${TRANQUILITY_TAR}
+ MYSQL_EXT_URL=http://static.druid.io/artifacts/releases/${MYSQL_EXT_TAR}
+ 
+ SHA1=shasum
+ 
+-OS=el6
++OS=el7
+ 
+ # do not edit below
+ DRUID_PARCEL=DRUID-${DRUID_VERSION}-${PARCEL_VERSION}
+diff --git a/csd/pom.xml b/csd/pom.xml
+index 6b6a17a..9a67970 100644
+--- a/csd/pom.xml
++++ b/csd/pom.xml
+@@ -5,7 +5,7 @@
+ 
+   <groupId>com.cloudera.csd</groupId>
+   <artifactId>DRUID</artifactId>
+-  <version>5.8.0</version>
++  <version>5.15.1</version>
+   <name>The Druid Service CSD</name>
+   <packaging>pom</packaging>
+ 
+diff --git a/csd/src/descriptor/service.sdl b/csd/src/descriptor/service.sdl
+index 412c6c6..114932b 100644
+--- a/csd/src/descriptor/service.sdl
++++ b/csd/src/descriptor/service.sdl
+@@ -21,11 +21,11 @@
+   "serviceDependencies": [
+     {
+       "name": "HDFS",
+-      "required": "true"
++      "required": "false"
+     },
+     {
+       "name": "YARN",
+-      "required": "true"
++      "required": "false"
+     }
+   ],
+   "hdfsDirs": [
+@@ -287,14 +287,6 @@
+                 "value": "druid/coordinator"
+               },
+               {
+-                "key": "druid.request.logging.feed",
+-                "value": "druid_requests"
+-              },
+-              {
+-                "key": "druid.request.logging.type",
+-                "value": "emitter"
+-              },
+-              {
+                 "key": "druid.monitoring.emissionPeriod",
+                 "value": "PT1m"
+               }
+@@ -420,14 +412,6 @@
+                 "value": "druid/coordinator"
+               },
+               {
+-                "key": "druid.request.logging.feed",
+-                "value": "druid_requests"
+-              },
+-              {
+-                "key": "druid.request.logging.type",
+-                "value": "emitter"
+-              },
+-              {
+                 "key": "druid.monitoring.emissionPeriod",
+                 "value": "PT1m"
+               }
+@@ -549,14 +533,6 @@
+                 "value": "druid/coordinator"
+               },
+               {
+-                "key": "druid.request.logging.feed",
+-                "value": "druid_requests"
+-              },
+-              {
+-                "key": "druid.request.logging.type",
+-                "value": "emitter"
+-              },
+-              {
+                 "key": "druid.monitoring.emissionPeriod",
+                 "value": "PT1m"
+               }
+@@ -745,14 +721,6 @@
+                 "value": "druid/coordinator"
+               },
+               {
+-                "key": "druid.request.logging.feed",
+-                "value": "druid_requests"
+-              },
+-              {
+-                "key": "druid.request.logging.type",
+-                "value": "emitter"
+-              },
+-              {
+                 "key": "druid.monitoring.emissionPeriod",
+                 "value": "PT1m"
+               }
+@@ -872,14 +840,6 @@
+                 "value": "druid/coordinator"
+               },
+               {
+-                "key": "druid.request.logging.feed",
+-                "value": "druid_requests"
+-              },
+-              {
+-                "key": "druid.request.logging.type",
+-                "value": "emitter"
+-              },
+-              {
+                 "key": "druid.monitoring.emissionPeriod",
+                 "value": "PT1m"
+               }
+@@ -941,6 +901,131 @@
+           }
+         ]
+       }
++    },
++    {
++      "name": "DRUID_ROUTER",
++      "label": "Druid Router",
++      "pluralLabel": "Druid Router",
++      "jvmBased": true,
++      "startRunner": {
++        "program": "scripts/control.sh",
++        "args": [
++          "router",
++          "start"
++        ],
++        "environmentVariables": {
++          "ROUTER_HEAP_SIZE": "${router_max_heap_size}"
++        }
++      },
++      "externalLink": {
++        "name": "router_console",
++        "label": "Router Console",
++        "url": "http://${host}:${router_port}"
++      },
++      "topology": {
++        "minInstances": 1
++      },
++      "logging": {
++        "dir": "/var/log/druid",
++        "filename": "druid-router-${host}.log",
++        "configName": "log.dir",
++        "modifiable": true,
++        "loggingType": "log4j"
++      },
++      "parameters": [
++        {
++          "name": "router_port",
++          "label": "Router Port",
++          "description": "The port of the router",
++          "configName": "druid.port",
++          "required": "true",
++          "type": "port",
++          "default": 18888
++        },
++        {
++          "name": "router_max_heap_size",
++          "label": "Java Heap Size of router",
++          "description": "Maximum size for the Java process heap memory. Passed to Java -Xmx. Measured in megabytes.",
++          "type": "memory",
++          "default": 1024,
++          "min": 1024,
++          "softMin": 2048,
++          "softMax": 16384,
++          "unit": "megabytes",
++          "scaleFactor": 1.3
++        }
++      ],
++      "configWriter": {
++        "generators": [
++          {
++            "filename": "conf/_common/common.runtime.properties",
++            "includedParams": [
++              "druid_extensions_loadList",
++              "druid_metadata_storage_type",
++              "druid_metadata_storage_connector_connectURI",
++              "druid_metadata_storage_connector_user",
++              "druid_metadata_storage_connector_password",
++              "druid_indexer_logs_type",
++              "druid_indexer_logs_directory",
++              "druid_startup_logging_logProperties",
++              "druid_storage_dir",
++              "druid_storage_type",
++              "druid_zk_paths_base",
++              "druid_zk_service_host",
++              "druid_javascript_enabled",
++              "druid_sql_enable"
++            ],
++            "additionalConfigs": [
++              {
++                "key": "druid.extensions.directory",
++                "value": "{{DRUID_HOME}}/extensions"
++              },
++              {
++                "key": "druid.extensions.hadoopDependenciesDir",
++                "value": "{{DRUID_HOME}}/hadoop-dependencies"
++              },
++              {
++                "key": "druid.selectors.indexing.serviceName",
++                "value": "druid/overlord"
++              },
++              {
++                "key": "druid.selectors.coordinator.serviceName",
++                "value": "druid/coordinator"
++              },
++              {
++                "key": "druid.monitoring.emissionPeriod",
++                "value": "PT1m"
++              }
++            ],
++            "configFormat": "properties"
++          },
++          {
++            "filename": "conf/router/runtime.properties",
++            "includedParams": [
++              "router_port"
++            ],
++            "additionalConfigs": [
++              {
++                "key": "druid.service",
++                "value": "druid/router"
++              },
++              {
++                "key": "druid.server.http.numThreads",
++                "value": 40
++              },
++              {
++                "key": "druid.processing.buffer.sizeBytes",
++                "value": 536870912
++              },
++              {
++                "key": "druid.processing.numThreads",
++                "value": 2
++              }
++            ],
++            "configFormat": "properties"
++          }
++        ]
++      }
+     }
+   ]
+ }
+diff --git a/csd/src/scripts/control.sh b/csd/src/scripts/control.sh
+index 40ef855..de07c63 100755
+--- a/csd/src/scripts/control.sh
++++ b/csd/src/scripts/control.sh
+@@ -89,19 +89,22 @@ COMMON_JAVA_OPTS="-server -Djava.net.preferIPv4Stack=true -Duser.timezone=UTC -D
+ # Configure JAVA options for each type
+ case ${NODE_TYPE} in
+     (overlord)
+-        DRUID_JAVA_OPTS="-Xmx${OVERLORD_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
++        DRUID_JAVA_OPTS="-Xmx${OVERLORD_HEAP_SIZE}M $DRUID_JAVA_OPTS"
+         ;;
+     (coordinator)
+-        DRUID_JAVA_OPTS="-Xmx${COORDINATOR_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
++        DRUID_JAVA_OPTS="-Xmx${COORDINATOR_HEAP_SIZE}M $DRUID_JAVA_OPTS"
+         ;;
+     (middleManager)
+-        DRUID_JAVA_OPTS="-Xmx${MIDDLE_MANAGER_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
++        DRUID_JAVA_OPTS="-Xmx${MIDDLE_MANAGER_HEAP_SIZE}M $DRUID_JAVA_OPTS"
+         ;;
+     (historical)
+-        DRUID_JAVA_OPTS="-Xmx${HISTORICAL_HEAP_SIZE}M -XX:MaxDirectMemorySize=1280m"
++        DRUID_JAVA_OPTS="-Xmx${HISTORICAL_HEAP_SIZE}M $DRUID_JAVA_OPTS"
+         ;;
+     (broker)
+-        DRUID_JAVA_OPTS="-Xmx${BROKER_HEAP_SIZE}M -XX:MaxDirectMemorySize=4096m"
++        DRUID_JAVA_OPTS="-Xmx${BROKER_HEAP_SIZE}M $DRUID_JAVA_OPTS"
++        ;;
++    (router)
++        DRUID_JAVA_OPTS="-Xmx${ROUTER_HEAP_SIZE}M $DRUID_JAVA_OPTS"
+         ;;
+     (*)
+         ;;
+@@ -111,8 +114,8 @@ DRUID_JAVA_OPTS="$DRUID_JAVA_OPTS $CSD_JAVA_OPTS $COMMON_JAVA_OPTS"
+ 
+ case ${CMD} in
+     (start)
+-        echo $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* io.druid.cli.Main server $NODE_TYPE
+-        exec $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* io.druid.cli.Main server $NODE_TYPE
++        echo $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* org.apache.druid.cli.Main server $NODE_TYPE
++        exec $JAVA_HOME/bin/java $DRUID_JAVA_OPTS -cp $DRUID_PLUGIN_DIR:$HADOOP_CONF_DIR:$DRUID_CONF_DIR/_common:$DRUID_CONF_DIR/$NODE_TYPE:$DRUID_LIB_DIR/* org.apache.druid.cli.Main server $NODE_TYPE
+         ;;
+     (*)
+         echo "Unknown command ${CMD}"
+diff --git a/csd/src/scripts/log4j_conv.py b/csd/src/scripts/log4j_conv.py
+index 16e281b..dc8158a 100644
+--- a/csd/src/scripts/log4j_conv.py
++++ b/csd/src/scripts/log4j_conv.py
+@@ -38,6 +38,7 @@ def preprocess(v1props):
+     }
+     appenders = defaultdict(dict)
+     loggers = defaultdict(dict)
++    global additivities
+     additivities = defaultdict(dict)
+ 
+     for key, value in v1props.items():
+diff --git a/parcel/Makefile b/parcel/Makefile
+index 886ffa9..89a14e1 100644
+--- a/parcel/Makefile
++++ b/parcel/Makefile
+@@ -17,7 +17,7 @@ build/$(DRUID_PARCEL_NAME): src/parcel.json downloads/druid-$(DRUID_VERSION)-bin
+ 	mkdir -p build
+ 	cd build && \
+ 		tar xf ../downloads/$(DRUID_TAR) && \
+-		mv druid-$(DRUID_VERSION) $(DRUID_PARCEL) && \
++		mv apache-druid-$(DRUID_VERSION) $(DRUID_PARCEL) && \
+                 tar xf ../downloads/$(MYSQL_EXT_TAR) -C $(DRUID_PARCEL)/extensions && \
+ 		mkdir -p $(DRUID_PARCEL)/meta && \
+ 		cp ../src/parcel.json $(DRUID_PARCEL)/meta && \
+@@ -33,5 +33,5 @@ install: build
+ 	mkdir -p ../$(DIST_DIR)/parcels
+ 	cp build/$(DRUID_PARCEL_NAME) ../$(DIST_DIR)/parcels
+ 	cp build/$(DRUID_PARCEL_NAME).sha ../$(DIST_DIR)/parcels
+-	python make_manifest.py ../$(DIST_DIR)/parcels
++	python2.7 make_manifest.py ../$(DIST_DIR)/parcels
+ 

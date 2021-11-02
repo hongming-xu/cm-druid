@@ -38,6 +38,7 @@ def preprocess(v1props):
     }
     appenders = defaultdict(dict)
     loggers = defaultdict(dict)
+    global additivities
     additivities = defaultdict(dict)
 
     for key, value in v1props.items():

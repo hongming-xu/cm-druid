@@ -1,6 +1,6 @@
 PARCEL_VERSION=0.0.4
 DIST_DIR=dist
-CDH_VERSION=6.0.1
+CDH_VERSION=5.15.1
 DRUID_VERSION=0.21.1
 
 TRANQUILITY_VERSION=0.8.2
@@ -14,7 +14,7 @@ MYSQL_EXT_TAR=mysql-metadata-storage-${MYSQL_EXT_VERSION}.tar.gz
 # http://mirrors.tuna.tsinghua.edu.cn/apache/incubator/druid/0.13.0-incubating/apache-druid-0.13.0-incubating-bin.tar.gz
 
 # DRUID_URL=http://static.druid.io/artifacts/releases/${DRUID_TAR}
-DRUID_URL=https://mirror-hk.koddos.net/apache/druid/${DRUID_VERSION}/${DRUID_TAR}
+DRUID_URL=https://downloads.apache.org/druid/${DRUID_VERSION}/${DRUID_TAR}
 TRANQUILITY_URL=http://static.druid.io/tranquility/releases/${TRANQUILITY_TAR}
 MYSQL_EXT_URL=http://static.druid.io/artifacts/releases/${MYSQL_EXT_TAR}
 

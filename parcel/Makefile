@@ -20,6 +20,7 @@ build/$(DRUID_PARCEL_NAME): src/parcel.json downloads/druid-$(DRUID_VERSION)-bin
 		mv apache-druid-$(DRUID_VERSION) $(DRUID_PARCEL) && \
                 tar xf ../downloads/$(MYSQL_EXT_TAR) -C $(DRUID_PARCEL)/extensions && \
                 cp -r /home/xuzh1/kafka-emitter $(DRUID_PARCEL)/extensions && \
+                cp -r /home/xuzh1/wangsu-obd-extensions $(DRUID_PARCEL)/extensions && \
 		mkdir -p $(DRUID_PARCEL)/meta && \
 		cp ../src/parcel.json $(DRUID_PARCEL)/meta && \
 		cp ../src/druid_env.sh $(DRUID_PARCEL)/meta && \
@@ -34,5 +35,5 @@ install: build
 	mkdir -p ../$(DIST_DIR)/parcels
 	cp build/$(DRUID_PARCEL_NAME) ../$(DIST_DIR)/parcels
 	cp build/$(DRUID_PARCEL_NAME).sha ../$(DIST_DIR)/parcels
-	python2.7 make_manifest.py ../$(DIST_DIR)/parcels
+	/usr/bin/python2.7 make_manifest.py ../$(DIST_DIR)/parcels
 
